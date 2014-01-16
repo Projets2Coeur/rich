@@ -110,6 +110,7 @@ if Object.const_defined?("SimpleForm")
   private
 
     def input_field(local_input_options)
+      editor_options[:button_class] ||= 'button'
       if editor_options[:hidden_input] == true
         @builder.hidden_field(attribute_name, local_input_options.merge(input_html_options))
       else
@@ -117,25 +118,29 @@ if Object.const_defined?("SimpleForm")
       end
     end
 
-    def preview_image_path
-      method_value = object.send(attribute_name)
+    def method_value
+      object.send(attribute_name)
+    end
 
+    def rich_file
+      Rich::RichFile.find(method_value)
+    end
+
+    def preview_image_path
       # return placeholder image if this is a non-image picker OR if there is no value set
       return editor_options[:placeholder_image] if editor_options[:type].to_s == 'file'
       return editor_options[:placeholder_image] unless method_value.present?
 
       if method_value.is_a? Integer
-        file = Rich::RichFile.find(method_value)
-        file.rich_file.url(:rich_thumb) #we ask paperclip directly for the file, so asset paths should not be an issue
+        rich_file.rich_file.url(:rich_thumb) #we ask paperclip directly for the file, so asset paths should not be an issue
       else # should be :string
         method_value
       end
     end
 
     def button
-      css_class = editor_options[:button_class] || 'button'
       %Q{
-          <a href='#{Rich.editor[:richBrowserUrl]}' class='#{css_class}'>
+          <a href='#{Rich.editor[:richBrowserUrl]}' class='#{editor_options[:button_class]}'>
             #{I18n.t('picker_browse')}
           </a>
       }.html_safe
@@ -145,9 +150,18 @@ if Object.const_defined?("SimpleForm")
       %Q{
           <script>
             $(function(){
-              $('.#{dom_id} a').click(function(e){
+              $('.#{dom_id} .#{editor_options[:button_class]}').click(function(e){
                 e.preventDefault(); assetPicker.showFinder('##{dom_id}', #{editor_options.to_json})
               });
+              $('.rich-image-preview-delete').click(function(e) {
+                e.preventDefault();
+                if (confirm("#{I18n.t(:delete_confirm)}")) {
+                  $('##{dom_id}').val(null);
+                  $('.rich-image-preview').attr('src', "#{editor_options[:placeholder_image]}");
+                  $('.rich-image-preview-details').hide();
+                }
+              });
+              #{"$('.rich-image-preview-details').hide();" unless method_value.present?}
             });
           </script>
       }.html_safe
@@ -167,7 +181,11 @@ if Object.const_defined?("SimpleForm")
         %Q{
            </br></br><div #{klass} #{style}></div>
         }.html_safe
-      end
+      end +
+      "<div class='rich-image-preview-details'>
+        <div class='rich-image-preview-filename'>#{rich_file.rich_file_file_name if method_value.present?}</div>
+        <a href='#' class='rich-image-preview-delete delete' title=\"#{I18n.t(:delete)}\">delete</a>
+       </div>".html_safe
     end
   end
 end
