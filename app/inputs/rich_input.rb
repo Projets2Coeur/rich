@@ -3,11 +3,9 @@ if (Object.const_defined?("Formtastic") && Gem.loaded_specs["formtastic"].versio
   class RichInput < ::Formtastic::Inputs::TextInput
     def to_html
 
-      if object
-        scope_type = object_name
-        scope_id = object.id
-        editor_options = Rich.options(options[:config], scope_type, scope_id)
-      end
+      scope_type = object_name
+      scope_id = object.try(:id)
+      editor_options = Rich.options(options[:config], scope_type, scope_id)
 
       input_wrapping do
         label_html <<
@@ -22,11 +20,9 @@ end
 if Object.const_defined?("SimpleForm")
   class RichInput < SimpleForm::Inputs::TextInput
     def input
-      if object
-        scope_type = object_name
-        scope_id = object.id
-        editor_options = Rich.options(options[:config], scope_type, scope_id)
-      end
+      scope_type = object_name
+      scope_id = object.try(:id)
+      editor_options = Rich.options(options[:config], scope_type, scope_id)
 
       super <<
       "<script>CKEDITOR.replace('#{object_name}_#{attribute_name}', #{editor_options.to_json.html_safe});</script>".html_safe
