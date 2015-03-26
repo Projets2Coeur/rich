@@ -15,6 +15,7 @@ module Rich
                       :convert_options => Proc.new { |a| Rich.convert_options[a] }
 
     validates_attachment_presence :rich_file
+    do_not_validate_attachment_file_type :rich_file
     validate :check_content_type
     validates_attachment_size :rich_file, :less_than=>150.megabyte, :message => "ne doit pas dépasser 150MB"
 
