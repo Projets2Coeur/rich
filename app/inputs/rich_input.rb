@@ -2,8 +2,7 @@ if (Object.const_defined?("Formtastic") && Gem.loaded_specs["formtastic"].versio
 
   class RichInput < ::Formtastic::Inputs::TextInput
     def to_html
-
-      scope_type = object_name
+      scope_type = object.class.name.parameterize.underscore
       scope_id = object.try(:id)
       editor_options = Rich.options(options[:config], scope_type, scope_id)
 
@@ -20,12 +19,12 @@ end
 if Object.const_defined?("SimpleForm")
   class RichInput < SimpleForm::Inputs::TextInput
     def input
-      scope_type = object_name
+      scope_type = object.class.name.parameterize.underscore
       scope_id = object.try(:id)
       editor_options = Rich.options(options[:config], scope_type, scope_id)
 
       super <<
-      "<script>CKEDITOR.replace('#{object_name}_#{attribute_name}', #{editor_options.to_json.html_safe});</script>".html_safe
+      "<script>CKEDITOR.replace('#{object_name.parameterize.underscore}_#{attribute_name}', #{editor_options.to_json.html_safe});</script>".html_safe
     end
   end
 end
