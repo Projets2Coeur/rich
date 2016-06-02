@@ -32,6 +32,11 @@ if (Object.const_defined?("Formtastic") && Gem.loaded_specs["formtastic"].versio
         end
       end
 
+      def rich_file
+        Rich::RichFile.find(method_value)
+      rescue ActiveRecord::RecordNotFound
+      end
+
       def preview_image_path
         method_value = object.send(method)
 
@@ -69,7 +74,7 @@ if (Object.const_defined?("Formtastic") && Gem.loaded_specs["formtastic"].versio
       end
 
       def preview
-        return unless editor_options[:type] != 'file'
+        return '' if rich_file.nil? || editor_options[:type] == 'file'
 
         path = preview_image_path
         klass = "class='rich-image-preview'"
@@ -124,6 +129,7 @@ if Object.const_defined?("SimpleForm")
 
     def rich_file
       Rich::RichFile.find(method_value)
+    rescue ActiveRecord::RecordNotFound
     end
 
     def preview_image_path
@@ -168,7 +174,7 @@ if Object.const_defined?("SimpleForm")
     end
 
     def preview
-      return unless editor_options[:type] != 'file'
+      return '' if rich_file.nil? || editor_options[:type] == 'file'
 
       path = preview_image_path
       klass = "class='rich-image-preview'"
